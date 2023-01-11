@@ -1,0 +1,84 @@
+// For format details, see https://aka.ms/devcontainer.json. For config options, see the
+// README at: https://github.com/devcontainers/templates/tree/main/src/typescript-node
+{
+	"name": "Node.js & TypeScript",
+	// Or use a Dockerfile or Docker Compose file. More info: https://containers.dev/guide/dockerfile
+	"build": {
+		"dockerfile": "Dockerfile",
+		// Update 'VARIANT' to pick a Node version: 18, 16, 14.
+		// Append -bullseye or -buster to pin to an OS version.
+		// Use -bullseye variants on local on arm64/Apple Silicon.
+		"args": {
+			"VARIANT": "16-bullseye"
+		}
+	},
+	// Features to add to the dev container. More info: https://containers.dev/features.
+	// "features": {},
+	// Use 'forwardPorts' to make a list of ports inside the container available locally.
+	// "forwardPorts": [],
+	// Use 'postCreateCommand' to run commands after the container is created.
+	// "postCreateCommand": "yarn install",
+	// Configure tool-specific properties.
+	"customizations": {
+		"vscode": {
+			"settings": {
+				"prettier.bracketSpacing": false,
+				"editor.defaultFormatter": "esbenp.prettier-vscode",
+				"editor.formatOnSave": true,
+				"editor.codeActionsOnSave": {
+					"source.fixAll": true,
+					"source.organizeImports": true
+				},
+				"cSpell.words": [
+					"codenames",
+					"colour",
+					"commitlint",
+					"datacentres",
+					"devs",
+					"Eagleson",
+					"esbenp",
+					"Etyo",
+					"Kasper",
+					"leerob",
+					"nextauth",
+					"nextjs",
+					"npmrc",
+					"pravatar",
+					"preload",
+					"prettierignore",
+					"prettierrc",
+					"regexes",
+					"rgba",
+					"scaleable",
+					"signin",
+					"Supabase",
+					"superpowered",
+					"tailwindcss",
+					"typeof",
+					"typesafe",
+					"unoptimized",
+					"userinfo",
+					"Vercel",
+					"Viewports",
+					"WEBP",
+					"zustand",
+					"sweetalert2",
+					"Popconfirm",
+					"devcontainers"
+				]
+			},
+			// Add the IDs of extensions you want installed when the container is created.
+			"extensions": [
+				"esbenp.prettier-vscode",
+				"streetsidesoftware.code-spell-checker",
+				"dsznajder.es7-react-js-snippets",
+				"eg2.vscode-npm-script",
+				// "TabNine.tabnine-vscode",
+				"bradlc.vscode-tailwindcss",
+				"ms-vscode.vscode-typescript-tslint-plugin"
+			]
+		}
+	}
+	// Uncomment to connect as root instead. More info: https://aka.ms/dev-containers-non-root.
+	// "remoteUser": "root"
+}
