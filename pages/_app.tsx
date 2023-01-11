@@ -1,6 +1,25 @@
-import '../styles/globals.css'
-import type { AppProps } from 'next/app'
+import {StyleProvider} from "@ant-design/cssinjs";
+import {NextPage} from "next";
+import type {AppProps} from "next/app";
+import {ReactElement, ReactNode} from "react";
+import {MainLayout} from "../common/layout";
+import "../styles/globals.css";
 
-export default function App({ Component, pageProps }: AppProps) {
-  return <Component {...pageProps} />
+export type NextPageWithLayout = NextPage & {
+  // eslint-disable-next-line no-unused-vars
+  getLayout?: (page: ReactElement) => ReactNode;
+};
+
+type AppPropsWithLayout = AppProps & {
+  Component: NextPageWithLayout;
+};
+
+export default function App({Component, pageProps}: AppPropsWithLayout) {
+  const getLayout =
+    Component.getLayout ?? ((page) => <MainLayout>{page}</MainLayout>);
+  return (
+    <StyleProvider hashPriority="high">
+      {getLayout(<Component {...pageProps} />)}
+    </StyleProvider>
+  );
 }
