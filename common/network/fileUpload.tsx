@@ -1,5 +1,5 @@
 import {AxiosProgressEvent} from "axios";
-import {client} from "./index";
+import {client} from ".";
 import {URLs} from "./URLs";
 
 interface fileUploadI {
@@ -8,8 +8,12 @@ interface fileUploadI {
   isDelete?: boolean;
 }
 
-const fileUpload = ({formData, onUpload, isDelete = false}: fileUploadI) => {
-  return client({
+const fileUpload = <T,>({
+  formData,
+  onUpload,
+  isDelete = false,
+}: fileUploadI) => {
+  return client<T>({
     method: isDelete ? "DELETE" : "POST",
     url: URLs.upload,
     headers: {

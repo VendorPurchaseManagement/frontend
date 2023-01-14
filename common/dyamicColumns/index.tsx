@@ -78,11 +78,12 @@ const DynamicCols = ({
                 state.columnsToShow.filter((each) => each.show === true)
                   .length === 0
               }
-              onClick={() =>
+              onClick={() => {
                 updateCols(
                   state.columnsToShow.filter((each) => each.show === true)
-                )
-              }
+                );
+                closeDrawer();
+              }}
             >
               APPLY
             </Button>
@@ -126,7 +127,7 @@ const DynamicCols = ({
                           {...provided.dragHandleProps}
                           {...provided.draggableProps}
                         >
-                          item.title
+                          {item.title}
                           <Checkbox
                             onChange={(e) => onChange(e, item.title)}
                             checked={item.show}

@@ -14,10 +14,11 @@ interface responseWithMessage {
   error?: string;
 }
 
-// interface errorInterface {
-//   error: string;
-//   status: number;
-// }
+interface errorInterface {
+  data: undefined;
+  error: string;
+  status: number;
+}
 
 const client = axios.create({
   baseURL: baseURL,
@@ -66,38 +67,41 @@ const postRequest = async <T,>({
     if (showToast && data.success) {
       toast.success(data.success);
     }
-    return {data, status};
+    return {data, status, error: undefined};
   } catch (err: any) {
+    const error = err as errorInterface;
     if (showToast && err.error) {
       toast.error(err.error);
     }
-    return err;
+    return error;
   }
 };
 
-const getRequest = async <T,>({
+const getRequest = <T,>({
   url,
   params = {},
-  showToast = true,
-}: requestInterface) => {
-  try {
-    let response: AxiosResponse = await client({
-      method: "GET",
-      url: url,
-      params: params,
-    });
-    const {data, status}: {data: T & responseWithMessage; status: number} =
-      response;
-    if (showToast && data.success) {
-      toast.success(data.success);
+  showToast = false,
+}: requestInterface) =>
+  (async () => {
+    try {
+      let response: AxiosResponse = await client({
+        method: "GET",
+        url: url,
+        params: params,
+      });
+      const {data, status}: {data: T & responseWithMessage; status: number} =
+        response;
+      if (showToast && data.success) {
+        toast.success(data.success);
+      }
+      return {data, status, error: undefined};
+    } catch (err: any) {
+      const error = err as errorInterface;
+      if (showToast && err.error) {
+        toast.error(err.error);
+      }
+      return error;
     }
-    return {data, status};
-  } catch (err: any) {
-    if (showToast && err.error) {
-      toast.error(err.error);
-    }
-    return err;
-  }
-};
+  })();
 
 export {postRequest, getRequest, client};

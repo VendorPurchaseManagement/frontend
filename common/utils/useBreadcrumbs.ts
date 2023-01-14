@@ -7,7 +7,7 @@ interface breadcrumbI {
 
 interface useBreadcrumbsInterface {
   path: Partial<breadcrumbI>[];
-  setPath: (val: breadcrumbI[]) => void;
+  setPath: (val: Partial<breadcrumbI>[]) => void;
 }
 
 const initialPath = [
@@ -22,7 +22,7 @@ const initialPath = [
 
 const useBreadcrumbs = create<useBreadcrumbsInterface>((set) => ({
   path: initialPath,
-  setPath: (val: breadcrumbI[]) => set(() => ({path: val})),
+  setPath: (val: Partial<breadcrumbI>[]) => set(() => ({path: val})),
 }));
 
 export default useBreadcrumbs;
