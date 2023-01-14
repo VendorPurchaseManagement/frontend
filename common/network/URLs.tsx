@@ -10,6 +10,7 @@ const URLs = {
   bankDetail: "/vendor/bank_detail/",
   purchase: "/purchase/",
   verifyIFSC: "https://ifsc.razorpay.com/",
+  leftPanel: "/leftPanel/",
 };
 
 export {baseURL, URLs, mediaURL};
