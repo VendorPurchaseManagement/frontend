@@ -1,6 +1,6 @@
 import {Button, Card, Form, Input} from "antd";
 import Router from "next/router";
-import {useEffect, useState} from "react";
+import {ReactElement, useEffect, useState} from "react";
 import {postRequest} from "../../common/network";
 import {URLs} from "../../common/network/URLs";
 import useAuth from "../../common/utils/useAuth";
@@ -70,5 +70,7 @@ const Login: NextPageWithLayout = () => {
     </div>
   );
 };
+
+Login.getLayout = (page: ReactElement) => page;
 
 export default Login;
