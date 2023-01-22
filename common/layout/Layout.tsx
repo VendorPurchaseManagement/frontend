@@ -1,13 +1,17 @@
-import {MenuFoldOutlined, MenuUnfoldOutlined} from "@ant-design/icons";
-import {Breadcrumb, Collapse, Layout, theme} from "antd";
+import {
+  LogoutOutlined,
+  MenuFoldOutlined,
+  MenuUnfoldOutlined,
+} from "@ant-design/icons";
+import {Breadcrumb, Collapse, Layout, theme, Tooltip} from "antd";
 import Link from "next/link";
-import {useRouter} from "next/router";
+import Router, {useRouter} from "next/router";
 import React, {ReactNode, useEffect, useMemo, useState} from "react";
+import logo from "../../public/logo.png";
 import {getRequest} from "../network";
 import {URLs} from "../network/URLs";
 import useBreadcrumbs from "../utils/useBreadcrumbs";
 import icons from "./icons";
-
 const {Header, Sider, Content} = Layout;
 const {Panel} = Collapse;
 interface LayoutProps {
@@ -110,13 +114,18 @@ const MainLayout = (_props: LayoutProps) => {
 
   const leftPanel = useMemo(() => {
     return (
-      <Collapse
-        ghost
-        expandIconPosition="end"
-        defaultActiveKey={state.activeKeys}
-      >
-        {state.items.map((items) => getItem(items))}
-      </Collapse>
+      <div className="p-1">
+        <div className="flex items-center justify-center my-3">
+          <img src={logo.src} className="max-w-none h-[100px]" />
+        </div>
+        <Collapse
+          ghost
+          expandIconPosition="end"
+          defaultActiveKey={state.activeKeys}
+        >
+          {state.items.map((items) => getItem(items))}
+        </Collapse>
+      </div>
     );
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [state.items, state.activeKeys, router.pathname]);
@@ -139,24 +148,45 @@ const MainLayout = (_props: LayoutProps) => {
         <div className="logo" />
         {leftPanel}
       </Sider>
-      <Layout className="overflow-hidden !h-screen">
-        <Header style={{paddingLeft: 10}} className="flex items-center">
-          {collapsed ? (
-            <MenuUnfoldOutlined
-              className="text-xl text-white"
-              onClick={() => setCollapsed(!collapsed)}
+      <Layout className="overflow-hidden flex flex-col !h-screen">
+        <Header
+          style={{paddingLeft: 10}}
+          className="flex items-center justify-between"
+        >
+          <div className="flex items-center">
+            {collapsed ? (
+              <MenuUnfoldOutlined
+                className="text-xl text-white"
+                onClick={() => setCollapsed(!collapsed)}
+              />
+            ) : (
+              <MenuFoldOutlined
+                className="text-xl text-white"
+                onClick={() => setCollapsed(!collapsed)}
+              />
+            )}
+            <span className=" text-sm whitespace-nowrap lg:text-xl px-4 text-white">
+              Vendor Purchase Management
+            </span>
+          </div>
+          <Tooltip title="Logout">
+            <LogoutOutlined
+              className="text-white text-xl"
+              onClick={() => {
+                getRequest({
+                  url: URLs.user,
+                  params: {
+                    action: "logout",
+                  },
+                  showToast: true,
+                }).then(({data}) => {
+                  if (data) Router.push("/login");
+                });
+              }}
             />
-          ) : (
-            <MenuFoldOutlined
-              className="text-xl text-white"
-              onClick={() => setCollapsed(!collapsed)}
-            />
-          )}
-          <span className=" text-sm whitespace-nowrap lg:text-xl px-4 text-white">
-            Vendor Purchase Management
-          </span>
+          </Tooltip>
         </Header>
-        <div className="overflow-scroll">
+        <div className="overflow-scroll flex-grow flex flex-col">
           <Breadcrumb
             style={{
               margin: "12px 24px",
@@ -180,7 +210,7 @@ const MainLayout = (_props: LayoutProps) => {
               margin: "12px 24px",
               padding: 24,
             }}
-            className="rounded-lg !bg-slate-200/40 "
+            className="rounded-lg !bg-slate-200/40 !flex-grow"
           >
             {_props.children}
           </Content>

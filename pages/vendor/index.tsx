@@ -1,9 +1,12 @@
-import {Button, Table, Tooltip} from "antd";
+import {DownloadOutlined} from "@ant-design/icons";
+import {Button, Drawer, Table, Tooltip} from "antd";
+import tableExport from "antd-table-export";
 import {NextPage} from "next";
 import Router from "next/router";
 import {useEffect, useState} from "react";
+import UpdateVendor from "../../common/components/vendor/updateVendor";
 import DynamicCols from "../../common/dyamicColumns";
-import {getRequest} from "../../common/network";
+import {deleteRequest, getRequest} from "../../common/network";
 import {mediaURL, URLs} from "../../common/network/URLs";
 import useBreadcrumbs from "../../common/utils/useBreadcrumbs";
 
@@ -71,6 +74,8 @@ interface initialStateI {
   data: any[];
   drawerOpen: boolean;
   loading: boolean;
+  isEditing: boolean;
+  editingId: number;
 }
 
 const initialState: initialStateI = {
@@ -78,11 +83,24 @@ const initialState: initialStateI = {
   data: [],
   drawerOpen: false,
   loading: false,
+  isEditing: false,
+  editingId: -1,
 };
 
 const Vendor: NextPage = () => {
   const setPath = useBreadcrumbs((state) => state.setPath);
   const [state, setState] = useState(initialState);
+  const getData = () => {
+    getRequest<any[]>({
+      url: URLs.vendor,
+    })
+      .then((res) => {
+        if (res.data) setState((prev) => ({...prev, data: res.data}));
+      })
+      .finally(() => {
+        setState((prev) => ({...prev, loading: false}));
+      });
+  };
   useEffect(() => {
     setPath([
       {
@@ -90,17 +108,7 @@ const Vendor: NextPage = () => {
       },
     ]);
     setState((prev) => ({...prev, loading: true}));
-    getRequest<any[]>({
-      url: URLs.vendor,
-    })
-      .then((res) => {
-        console.log(res);
-
-        if (res.data) setState((prev) => ({...prev, data: res.data}));
-      })
-      .finally(() => {
-        setState((prev) => ({...prev, loading: false}));
-      });
+    getData();
   }, []);
   return (
     <>
@@ -108,19 +116,68 @@ const Vendor: NextPage = () => {
         <Button type="primary" onClick={() => Router.push("/vendor/add")}>
           Add Vendor
         </Button>
-        <Button
-          type="primary"
-          onClick={() => setState((prev) => ({...prev, drawerOpen: true}))}
-        >
-          Customize Table
-        </Button>
+        <div className="flex">
+          <Button
+            type="primary"
+            onClick={() => setState((prev) => ({...prev, drawerOpen: true}))}
+          >
+            Customize Table
+          </Button>
+          <Button
+            className="!ml-2"
+            icon={<DownloadOutlined />}
+            onClick={() => {
+              const exportInstance = new tableExport(state.data, state.columns);
+              exportInstance.download("Vendors", "xlsx");
+            }}
+          />
+        </div>
       </div>
       <Table
         loading={state.loading}
         className="my-4"
         dataSource={state.data}
         rowKey={(row) => row.id}
-        columns={state.columns}
+        columns={[
+          {
+            title: "Actions",
+            key: "actions",
+            dataIndex: "id",
+            render: (id) => (
+              <>
+                <Button
+                  onClick={() =>
+                    setState((prev) => ({
+                      ...prev,
+                      isEditing: true,
+                      editingId: id,
+                    }))
+                  }
+                >
+                  Edit
+                </Button>
+                <Button
+                  danger
+                  type="primary"
+                  className="ml-2"
+                  onClick={() => {
+                    deleteRequest({
+                      url: URLs.vendor,
+                      reqData: {
+                        vendor: id,
+                      },
+                    }).then(({data}) => {
+                      if (data) getData();
+                    });
+                  }}
+                >
+                  Delete
+                </Button>
+              </>
+            ),
+          },
+          ...state.columns,
+        ]}
         scroll={{x: "max-content"}}
       />
       <DynamicCols
@@ -129,6 +186,27 @@ const Vendor: NextPage = () => {
         columns={state.columns}
         updateCols={(arr) => setState((prev) => ({...prev, columns: arr}))}
       />
+      <Drawer
+        title="Update Vendor"
+        width={"100%"}
+        onClose={() =>
+          setState((prev) => ({...prev, isEditing: false, editingId: -1}))
+        }
+        open={state.isEditing}
+        bodyStyle={{paddingBottom: 80}}
+      >
+        <UpdateVendor
+          id={state.editingId}
+          onUpdate={() => {
+            getData();
+            setState((prev) => ({
+              ...prev,
+              isEditing: false,
+              editingId: -1,
+            }));
+          }}
+        />
+      </Drawer>
     </>
   );
 };

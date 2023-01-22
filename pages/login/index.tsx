@@ -21,9 +21,11 @@ const Login: NextPageWithLayout = () => {
 
   const login = (values: object) => {
     setState((prev) => ({...prev, loading: true}));
-    postRequest({url: URLs.user, reqData: values}).then(() => {
-      setUser({});
-    });
+    postRequest({url: URLs.user, reqData: values})
+      .then(({data}) => {
+        if (data) setUser({});
+      })
+      .finally(() => setState((prev) => ({...prev, loading: false})));
   };
 
   useEffect(() => {

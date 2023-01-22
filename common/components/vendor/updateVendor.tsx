@@ -1,36 +1,40 @@
-import {Button, Form, Input, message, Select, Upload, UploadFile} from "antd";
-import {NextPage} from "next";
+import {DeleteOutlined, EyeOutlined} from "@ant-design/icons";
+import {
+  Button,
+  Form,
+  Input,
+  message,
+  Select,
+  Tooltip,
+  Upload,
+  UploadFile,
+} from "antd";
 import {useEffect, useMemo, useState} from "react";
-import {postRequest} from "../../common/network";
-import fileUpload from "../../common/network/fileUpload";
-import {URLs} from "../../common/network/URLs";
-import getSelectOptions, {
-  SelectWithChildren,
-} from "../../common/utils/getSelectOptions";
-import useBreadcrumbs from "../../common/utils/useBreadcrumbs";
+import {
+  initialState as vendorState,
+  initialStateI as vendorI,
+} from "../../../pages/vendor/add";
+import {deleteRequest, getRequest, putRequest} from "../../network";
+import fileUpload from "../../network/fileUpload";
+import {mediaURL, URLs} from "../../network/URLs";
+import getSelectOptions from "../../utils/getSelectOptions";
+import {componentDataI, updateComponentI} from "../utility";
 
-export interface initialStateI {
-  locations: SelectWithChildren[];
-  paymentCycles: SelectWithChildren[];
-  categories: SelectWithChildren[];
-  uploadProgress: number;
-  loading: boolean;
-}
-
-export const initialState: initialStateI = {
-  locations: [],
-  paymentCycles: [],
-  categories: [],
-  uploadProgress: 0,
-  loading: false,
+type initialStateI = vendorI & {
+  uploaded_msme: string | null;
 };
 
-const AddVendor: NextPage = () => {
-  const {useForm, useWatch} = Form;
+const initialState: initialStateI = {
+  ...vendorState,
+  uploaded_msme: null,
+};
+
+const {useForm, useWatch} = Form;
+
+const UpdateVendor = ({id, onUpdate}: updateComponentI) => {
+  const [state, setState] = useState<initialStateI>(initialState);
   const [form] = useForm();
   const msme_certified = useWatch("msme_certified", form);
-  const [state, setState] = useState(initialState);
-  const setPath = useBreadcrumbs((state) => state.setPath);
   const msme_certified_options = useMemo(
     () => [
       {
@@ -44,6 +48,27 @@ const AddVendor: NextPage = () => {
     ],
     []
   );
+
+  const updateVendor = (values: object) => {
+    console.log(values);
+
+    setState((prev) => ({...prev, loading: true}));
+    putRequest({
+      url: URLs.vendor,
+      reqData: {...values, vendor: id},
+    })
+      .then((res) => {
+        console.log(res);
+
+        if (res.data) {
+          form.resetFields();
+          onUpdate();
+        }
+      })
+      .finally(() => {
+        setState((prev) => ({...prev, loading: false}));
+      });
+  };
 
   const uploadMSME = (uploadedFile: any) => {
     console.log(uploadedFile);
@@ -80,24 +105,6 @@ const AddVendor: NextPage = () => {
       });
   };
 
-  const addVendor = (values: object) => {
-    console.log(values);
-
-    setState((prev) => ({...prev, loading: true}));
-    postRequest({
-      url: URLs.vendor,
-      reqData: values,
-    })
-      .then((res) => {
-        console.log(res);
-
-        if (res.data) form.resetFields();
-      })
-      .finally(() => {
-        setState((prev) => ({...prev, loading: false}));
-      });
-  };
-
   const deleteFile = () => {
     let fileData = new FormData();
     let pk = form.getFieldValue("msme_certificate");
@@ -118,15 +125,31 @@ const AddVendor: NextPage = () => {
   };
 
   useEffect(() => {
-    setPath([
-      {
-        label: "Vendors",
-        link: "/vendor",
+    setState((prev) => ({...prev, loading: true}));
+    getRequest<componentDataI>({
+      url: URLs.vendor,
+      params: {
+        request_type: "get_details",
+        vendor: id,
       },
-      {
-        label: "Add Vendor",
-      },
-    ]);
+    }).then(({data}) => {
+      if (data) {
+        form.setFieldsValue({
+          ...data,
+          msme_certificate: null,
+        });
+        setState((prev) => ({
+          ...prev,
+          uploaded_msme: data.msme_certificate
+            ? `${data.msme_certificate}`
+            : null,
+        }));
+      }
+
+      console.log(form.getFieldValue("uploaded_msme"));
+
+      setState((prev) => ({...prev, loading: false}));
+    });
     getSelectOptions("category").then((data) => {
       setState((prev) => ({...prev, categories: data}));
     });
@@ -136,7 +159,7 @@ const AddVendor: NextPage = () => {
     getSelectOptions("payment_cycle").then((data) => {
       setState((prev) => ({...prev, paymentCycles: data}));
     });
-  }, []);
+  }, [id]);
   return (
     <>
       <Form
@@ -144,7 +167,7 @@ const AddVendor: NextPage = () => {
         labelCol={{span: 6}}
         wrapperCol={{span: 16, offset: 2}}
         form={form}
-        onFinish={addVendor}
+        onFinish={updateVendor}
         className="flex items-center flex-col"
         autoComplete="off"
         disabled={state.loading}
@@ -302,35 +325,76 @@ const AddVendor: NextPage = () => {
             className="w-full sm:w-[45%]"
             labelAlign="left"
           >
-            <Upload
-              maxCount={1}
-              customRequest={uploadMSME}
-              onRemove={deleteFile}
-              onPreview={(file: UploadFile) => {
-                if (file.originFileObj)
-                  window.open(URL.createObjectURL(file.originFileObj));
-              }}
-              previewFile={(file: File | Blob) => {
-                return Promise.resolve(URL.createObjectURL(file));
-              }}
-              //   listType={"picture"}
-              showUploadList={{
-                showPreviewIcon: true,
-              }}
-            >
-              <Button disabled={!msme_certified || state.uploadProgress !== 0}>
-                Click to Upload
-              </Button>
-            </Upload>
-            <Input type="hidden" />
+            <div className="flex justify-between">
+              <Upload
+                maxCount={1}
+                customRequest={uploadMSME}
+                onRemove={deleteFile}
+                onPreview={(file: UploadFile) => {
+                  if (file.originFileObj)
+                    window.open(URL.createObjectURL(file.originFileObj));
+                }}
+                previewFile={(file: File | Blob) => {
+                  return Promise.resolve(URL.createObjectURL(file));
+                }}
+                showUploadList={{
+                  showPreviewIcon: true,
+                }}
+              >
+                <Button
+                  disabled={!msme_certified || state.uploadProgress !== 0}
+                >
+                  Click to Upload
+                </Button>
+              </Upload>
+              <Input type="hidden" />
+              <div className="flex gap-x-2">
+                <Tooltip title="View Previous MSME Certificate">
+                  <Button
+                    type="primary"
+                    disabled={!state.uploaded_msme}
+                    icon={<EyeOutlined />}
+                    onClick={() =>
+                      window.open(mediaURL + state.uploaded_msme, "_blank")
+                    }
+                    className="!flex items-center justify-center"
+                  />
+                </Tooltip>
+                <Tooltip title="Delete Previous MSME Certificate">
+                  <Button
+                    danger
+                    type="primary"
+                    disabled={!state.uploaded_msme}
+                    icon={<DeleteOutlined />}
+                    onClick={() => {
+                      deleteRequest({
+                        url: URLs.vendor,
+                        reqData: {
+                          request_type: "delete_msme",
+                          vendor: id,
+                        },
+                      }).then(({data}) => {
+                        if (data)
+                          setState((prev) => ({
+                            ...prev,
+                            uploaded_msme: null,
+                          }));
+                      });
+                    }}
+                    className="!flex items-center justify-center"
+                  />
+                </Tooltip>
+              </div>
+            </div>
           </Form.Item>
         </div>
+
         <Button type="primary" htmlType="submit" loading={state.loading}>
-          Submit
+          Update
         </Button>
       </Form>
     </>
   );
 };
 
-export default AddVendor;
+export default UpdateVendor;

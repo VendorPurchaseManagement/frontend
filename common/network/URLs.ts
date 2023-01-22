@@ -11,6 +11,9 @@ const URLs = {
   purchase: "/purchase/",
   verifyIFSC: "https://ifsc.razorpay.com/",
   leftPanel: "/leftPanel/",
+  dashboard: "/dashboard/",
+  creditCard: "/credit_card/",
+  category: "/vendor/category/",
 };
 
 export {baseURL, URLs, mediaURL};

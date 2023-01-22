@@ -1,4 +1,6 @@
+import {message} from "antd";
 import axios, {AxiosError, AxiosResponse} from "axios";
+import Router from "next/router";
 import {toast} from "react-hot-toast";
 import {baseURL} from "./URLs";
 
@@ -31,6 +33,10 @@ client.interceptors.response.use(
   },
   (error: AxiosError<{error: string}>) => {
     if (error.response) {
+      if (error.response.status == 401) {
+        Router.push("/login");
+        message.error("Session has expired!");
+      }
       if (error.response.data.error) {
         return Promise.reject({
           ...error.response.data,
@@ -51,7 +57,7 @@ client.interceptors.response.use(
   }
 );
 
-const postRequest = async <T,>({
+const postRequest = async <T>({
   url,
   reqData = {},
   showToast = true,
@@ -77,7 +83,59 @@ const postRequest = async <T,>({
   }
 };
 
-const getRequest = <T,>({
+const deleteRequest = async <T>({
+  url,
+  reqData = {},
+  showToast = true,
+}: requestInterface) => {
+  try {
+    let response: AxiosResponse = await client({
+      method: "DELETE",
+      url: url,
+      data: reqData,
+    });
+    const {data, status}: {data: T & responseWithMessage; status: number} =
+      response;
+    if (showToast && data.success) {
+      toast.success(data.success);
+    }
+    return {data, status, error: undefined};
+  } catch (err: any) {
+    const error = err as errorInterface;
+    if (showToast && err.error) {
+      toast.error(err.error);
+    }
+    return error;
+  }
+};
+
+const putRequest = async <T>({
+  url,
+  reqData = {},
+  showToast = true,
+}: requestInterface) => {
+  try {
+    let response: AxiosResponse = await client({
+      method: "PUT",
+      url: url,
+      data: reqData,
+    });
+    const {data, status}: {data: T & responseWithMessage; status: number} =
+      response;
+    if (showToast && data.success) {
+      toast.success(data.success);
+    }
+    return {data, status, error: undefined};
+  } catch (err: any) {
+    const error = err as errorInterface;
+    if (showToast && err.error) {
+      toast.error(err.error);
+    }
+    return error;
+  }
+};
+
+const getRequest = <T>({
   url,
   params = {},
   showToast = false,
@@ -104,4 +162,4 @@ const getRequest = <T,>({
     }
   })();
 
-export {postRequest, getRequest, client};
+export {postRequest, getRequest, deleteRequest, putRequest, client};

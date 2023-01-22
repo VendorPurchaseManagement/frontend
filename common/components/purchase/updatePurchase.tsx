@@ -1,3 +1,4 @@
+import {DeleteOutlined, EyeOutlined} from "@ant-design/icons";
 import {
   Button,
   DatePicker,
@@ -6,54 +7,44 @@ import {
   InputNumber,
   message,
   Select,
+  Tooltip,
   Upload,
   UploadFile,
 } from "antd";
-import {NextPage} from "next";
+import dayjs from "dayjs";
 import {useEffect, useMemo, useState} from "react";
-import {getRequest, postRequest} from "../../common/network";
-import fileUpload from "../../common/network/fileUpload";
-import {URLs} from "../../common/network/URLs";
-import getSelectOptions, {
-  SelectWithChildren,
-} from "../../common/utils/getSelectOptions";
-import useBreadcrumbs from "../../common/utils/useBreadcrumbs";
+import {
+  initialState as purchaseState,
+  initialStateI as purchaseStateI,
+  modes,
+} from "../../../pages/purchase/add";
+import {deleteRequest, getRequest, putRequest} from "../../network";
+import fileUpload from "../../network/fileUpload";
+import {mediaURL, URLs} from "../../network/URLs";
+import getSelectOptions from "../../utils/getSelectOptions";
+import {componentDataI, updateComponentI} from "../utility";
 
-export interface initialStateI {
-  categories: SelectWithChildren[];
-  banks: SelectWithChildren[];
-  credit_cards: SelectWithChildren[];
-  vendors: SelectWithChildren[];
-  mode: SelectWithChildren[];
-  uploadProgress: number;
-  loading: boolean;
-}
-
-export const initialState: initialStateI = {
-  categories: [],
-  banks: [],
-  credit_cards: [],
-  vendors: [],
-  mode: [],
-  uploadProgress: 0,
-  loading: false,
+type initialStateI = purchaseStateI & {
+  uploaded_invoice: string | null;
+  initial_status: boolean;
 };
 
-export const modes = {
-  BANK: 10,
-  CREDIT_CARD: 11,
+const initialState: initialStateI = {
+  ...purchaseState,
+  uploaded_invoice: null,
+  initial_status: false,
 };
 
-const AddPurchase: NextPage = () => {
-  const {useForm, useWatch} = Form;
-  const {TextArea} = Input;
+const {useForm, useWatch} = Form;
+const {TextArea} = Input;
+
+const UpdatePurchase = ({id, onUpdate}: updateComponentI) => {
+  const [state, setState] = useState<initialStateI>(initialState);
   const [form] = useForm();
   const inv_amount = useWatch("inv_amount", form);
   const gst_perc = useWatch("gst_perc", form);
   const payment_status = useWatch("payment_status", form);
   const mode = useWatch("mode", form);
-  const [state, setState] = useState(initialState);
-  const setPath = useBreadcrumbs((state) => state.setPath);
   const payment_status_options = useMemo(
     () => [
       {
@@ -68,6 +59,35 @@ const AddPurchase: NextPage = () => {
     []
   );
 
+  const updatePurchase = (values: any) => {
+    console.log(values);
+    values = {
+      ...values,
+      inv_date: values.inv_date.format("YYYY-MM-DD"),
+      payment_date: values.payment_date
+        ? values.payment_date.format("YYYY-MM-DD")
+        : null,
+      purchase: id,
+    };
+    console.log(values);
+
+    setState((prev) => ({...prev, loading: true}));
+    putRequest({
+      url: URLs.purchase,
+      reqData: values,
+    })
+      .then((res) => {
+        console.log(res);
+
+        if (res.data) {
+          form.resetFields();
+          onUpdate();
+        }
+      })
+      .finally(() => {
+        setState((prev) => ({...prev, loading: false}));
+      });
+  };
   const uploadInvoice = (uploadedFile: any) => {
     console.log(uploadedFile);
     console.log("hello");
@@ -91,7 +111,7 @@ const AddPurchase: NextPage = () => {
     })
       .then((response) => {
         onSuccess("Ok");
-        form.setFieldValue("msme_certificate", response.data.id);
+        form.setFieldValue("invoice", response.data.id);
       })
       .catch((err) => {
         message.error("An Error has occurred!");
@@ -100,32 +120,6 @@ const AddPurchase: NextPage = () => {
           uploadProgress: 0,
         }));
         onError({err});
-      });
-  };
-
-  const addPurchase = (values: any) => {
-    console.log(values);
-    values = {
-      ...values,
-      inv_date: values.inv_date.format("YYYY-MM-DD"),
-      payment_date: values.payment_date
-        ? values.payment_date.format("YYYY-MM-DD")
-        : null,
-    };
-    console.log(values);
-
-    setState((prev) => ({...prev, loading: true}));
-    postRequest({
-      url: URLs.purchase,
-      reqData: values,
-    })
-      .then((res) => {
-        console.log(res);
-
-        if (res.data) form.resetFields();
-      })
-      .finally(() => {
-        setState((prev) => ({...prev, loading: false}));
       });
   };
 
@@ -149,15 +143,54 @@ const AddPurchase: NextPage = () => {
   };
 
   useEffect(() => {
-    setPath([
-      {
-        label: "Purchase",
-        link: "/purchase",
+    setState((prev) => ({...prev, loading: true}));
+    getRequest<componentDataI>({
+      url: URLs.purchase,
+      params: {
+        request_type: "get_details",
+        purchase: id,
       },
-      {
-        label: "Add Purchase",
-      },
-    ]);
+    }).then(({data}) => {
+      if (data) {
+        form.setFieldsValue({
+          ...data,
+          invoice: null,
+          inv_date: dayjs(data.inv_date),
+          payment_date: dayjs(data.payment_date),
+        });
+        setState((prev) => ({
+          ...prev,
+          uploaded_invoice: data.invoice ? `${data.invoice}` : null,
+          initial_status: !!data.payment_status,
+        }));
+        if (!data.payment_date) form.resetFields(["payment_date"]);
+        getSelectOptions("category", form.getFieldValue("vendor")).then(
+          (data) => {
+            setState((prev) => ({...prev, categories: data}));
+          }
+        );
+        getRequest<any[]>({
+          url: URLs.bankDetail,
+          params: {
+            vendor: form.getFieldValue("vendor"),
+          },
+        }).then((res) => {
+          if (res.data)
+            setState((prev) => ({
+              ...prev,
+              banks: res.data.map((item) => ({
+                value: item.acc_number,
+                label: item.acc_name,
+                children: [],
+              })),
+            }));
+          else setState((prev) => ({...prev, banks: []}));
+        });
+      }
+      console.log(form.getFieldsValue());
+
+      setState((prev) => ({...prev, loading: false}));
+    });
     getSelectOptions("mode").then((data) => {
       setState((prev) => ({...prev, mode: data}));
     });
@@ -189,7 +222,7 @@ const AddPurchase: NextPage = () => {
         }));
       else setState((prev) => ({...prev, vendors: []}));
     });
-  }, []);
+  }, [id]);
   return (
     <>
       <Form
@@ -197,7 +230,7 @@ const AddPurchase: NextPage = () => {
         labelCol={{span: 6}}
         wrapperCol={{span: 16, offset: 2}}
         form={form}
-        onFinish={addPurchase}
+        onFinish={updatePurchase}
         className="flex items-center flex-col"
         autoComplete="off"
         disabled={state.loading}
@@ -220,32 +253,10 @@ const AddPurchase: NextPage = () => {
             rules={[{required: true, message: "Please select a vendor!"}]}
           >
             <Select
+              disabled
               options={state.vendors}
               onChange={() => {
                 form.resetFields(["category", "bank"]);
-                getSelectOptions("category", form.getFieldValue("vendor")).then(
-                  (data) => {
-                    setState((prev) => ({...prev, categories: data}));
-                  }
-                );
-
-                getRequest<any[]>({
-                  url: URLs.bankDetail,
-                  params: {
-                    vendor: form.getFieldValue("vendor"),
-                  },
-                }).then((res) => {
-                  if (res.data)
-                    setState((prev) => ({
-                      ...prev,
-                      banks: res.data.map((item) => ({
-                        value: item.acc_number,
-                        label: item.acc_name,
-                        children: [],
-                      })),
-                    }));
-                  else setState((prev) => ({...prev, banks: []}));
-                });
               }}
             />
           </Form.Item>
@@ -410,26 +421,65 @@ const AddPurchase: NextPage = () => {
             className="w-full sm:w-[45%]"
             labelAlign="left"
           >
-            <Upload
-              maxCount={1}
-              customRequest={uploadInvoice}
-              onRemove={deleteFile}
-              onPreview={(file: UploadFile) => {
-                if (file.originFileObj)
-                  window.open(URL.createObjectURL(file.originFileObj));
-              }}
-              previewFile={(file: File | Blob) => {
-                return Promise.resolve(URL.createObjectURL(file));
-              }}
-              showUploadList={{
-                showPreviewIcon: true,
-              }}
-            >
-              <Button disabled={state.uploadProgress !== 0}>
-                Click to Upload
-              </Button>
-            </Upload>
-            <Input type="hidden" />
+            <div className="flex justify-between">
+              <Upload
+                maxCount={1}
+                customRequest={uploadInvoice}
+                onRemove={deleteFile}
+                onPreview={(file: UploadFile) => {
+                  if (file.originFileObj)
+                    window.open(URL.createObjectURL(file.originFileObj));
+                }}
+                previewFile={(file: File | Blob) => {
+                  return Promise.resolve(URL.createObjectURL(file));
+                }}
+                showUploadList={{
+                  showPreviewIcon: true,
+                }}
+              >
+                <Button disabled={state.uploadProgress !== 0}>
+                  Click to Upload
+                </Button>
+              </Upload>
+              <Input type="hidden" />
+              <div className="flex gap-x-2">
+                <Tooltip title="View Previous MSME Certificate">
+                  <Button
+                    type="primary"
+                    disabled={!state.uploaded_invoice}
+                    icon={<EyeOutlined />}
+                    onClick={() =>
+                      window.open(mediaURL + state.uploaded_invoice, "_blank")
+                    }
+                    className="!flex items-center justify-center"
+                  />
+                </Tooltip>
+                <Tooltip title="Delete Previous MSME Certificate">
+                  <Button
+                    danger
+                    type="primary"
+                    disabled={!state.uploaded_invoice}
+                    icon={<DeleteOutlined />}
+                    onClick={() => {
+                      deleteRequest({
+                        url: URLs.purchase,
+                        reqData: {
+                          request_type: "delete_invoice",
+                          purchase: id,
+                        },
+                      }).then(({data}) => {
+                        if (data)
+                          setState((prev) => ({
+                            ...prev,
+                            uploaded_invoice: null,
+                          }));
+                      });
+                    }}
+                    className="!flex items-center justify-center"
+                  />
+                </Tooltip>
+              </div>
+            </div>
           </Form.Item>
           <Form.Item
             wrapperCol={{
@@ -448,7 +498,7 @@ const AddPurchase: NextPage = () => {
               disabled
               value={
                 inv_amount && gst_perc !== undefined
-                  ? inv_amount + inv_amount * (gst_perc / 100)
+                  ? Number.parseInt(inv_amount) + inv_amount * (gst_perc / 100)
                   : "-"
               }
             />
@@ -471,6 +521,7 @@ const AddPurchase: NextPage = () => {
             labelAlign="left"
           >
             <Select
+              disabled={state.initial_status}
               options={payment_status_options}
               onChange={() => {
                 form.resetFields([
@@ -595,6 +646,13 @@ const AddPurchase: NextPage = () => {
               label="Bank"
               className="w-full sm:w-[45%]"
               labelAlign="left"
+              requiredMark
+              rules={[
+                {
+                  required: true,
+                  message: "Please select a bank!",
+                },
+              ]}
             >
               <Select options={state.banks} disabled={!payment_status} />
             </Form.Item>
@@ -613,6 +671,13 @@ const AddPurchase: NextPage = () => {
               label="Credit Card"
               className="w-full sm:w-[45%]"
               labelAlign="left"
+              requiredMark
+              rules={[
+                {
+                  required: true,
+                  message: "Please select a credit card!",
+                },
+              ]}
             >
               <Select options={state.credit_cards} disabled={!payment_status} />
             </Form.Item>
@@ -626,4 +691,4 @@ const AddPurchase: NextPage = () => {
   );
 };
 
-export default AddPurchase;
+export default UpdatePurchase;
