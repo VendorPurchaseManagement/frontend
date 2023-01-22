@@ -25,6 +25,9 @@ interface errorInterface {
 const client = axios.create({
   baseURL: baseURL,
   withCredentials: true,
+  headers: {
+    "ngrok-skip-browser-warning": true,
+  },
 });
 
 client.interceptors.response.use(
