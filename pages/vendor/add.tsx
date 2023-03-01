@@ -1,9 +1,9 @@
-import {Button, Form, Input, message, Select, Upload, UploadFile} from "antd";
-import {NextPage} from "next";
-import {useEffect, useMemo, useState} from "react";
-import {postRequest} from "../../common/network";
+import { Button, Form, Input, message, Select, Upload, UploadFile } from "antd";
+import { NextPage } from "next";
+import { useEffect, useMemo, useState } from "react";
+import { postRequest } from "../../common/network";
 import fileUpload from "../../common/network/fileUpload";
-import {URLs} from "../../common/network/URLs";
+import { URLs } from "../../common/network/URLs";
 import getSelectOptions, {
   SelectWithChildren,
 } from "../../common/utils/getSelectOptions";
@@ -26,7 +26,7 @@ export const initialState: initialStateI = {
 };
 
 const AddVendor: NextPage = () => {
-  const {useForm, useWatch} = Form;
+  const { useForm, useWatch } = Form;
   const [form] = useForm();
   const msme_certified = useWatch("msme_certified", form);
   const [state, setState] = useState(initialState);
@@ -49,11 +49,11 @@ const AddVendor: NextPage = () => {
     console.log(uploadedFile);
     console.log("hello");
 
-    const {file, onProgress, onSuccess, onError} = uploadedFile;
+    const { file, onProgress, onSuccess, onError } = uploadedFile;
     const formData = new FormData();
     formData.append("file", file);
-    setState((prev) => ({...prev, uploadProgress: 0}));
-    fileUpload<{id: number}>({
+    setState((prev) => ({ ...prev, uploadProgress: 0 }));
+    fileUpload<{ id: number }>({
       formData: formData,
       onUpload: (event) => {
         const progress = Math.round(
@@ -63,7 +63,7 @@ const AddVendor: NextPage = () => {
           ...prev,
           uploadProgress: progress,
         }));
-        onProgress({percent: progress});
+        onProgress({ percent: progress });
       },
     })
       .then((response) => {
@@ -76,14 +76,14 @@ const AddVendor: NextPage = () => {
           ...prev,
           uploadProgress: 0,
         }));
-        onError({err});
+        onError({ err });
       });
   };
 
   const addVendor = (values: object) => {
     console.log(values);
 
-    setState((prev) => ({...prev, loading: true}));
+    setState((prev) => ({ ...prev, loading: true }));
     postRequest({
       url: URLs.vendor,
       reqData: values,
@@ -94,7 +94,7 @@ const AddVendor: NextPage = () => {
         if (res.data) form.resetFields();
       })
       .finally(() => {
-        setState((prev) => ({...prev, loading: false}));
+        setState((prev) => ({ ...prev, loading: false }));
       });
   };
 
@@ -128,21 +128,21 @@ const AddVendor: NextPage = () => {
       },
     ]);
     getSelectOptions("category").then((data) => {
-      setState((prev) => ({...prev, categories: data}));
+      setState((prev) => ({ ...prev, categories: data }));
     });
     getSelectOptions("location").then((data) => {
-      setState((prev) => ({...prev, locations: data}));
+      setState((prev) => ({ ...prev, locations: data }));
     });
     getSelectOptions("payment_cycle").then((data) => {
-      setState((prev) => ({...prev, paymentCycles: data}));
+      setState((prev) => ({ ...prev, paymentCycles: data }));
     });
   }, []);
   return (
     <>
       <Form
         name="addVendor"
-        labelCol={{span: 6}}
-        wrapperCol={{span: 16, offset: 2}}
+        labelCol={{ span: 6 }}
+        wrapperCol={{ span: 16, offset: 2 }}
         form={form}
         onFinish={addVendor}
         className="flex items-center flex-col"
@@ -164,7 +164,9 @@ const AddVendor: NextPage = () => {
             className="w-full sm:w-[45%]"
             labelAlign="left"
             required
-            rules={[{required: true, message: "Please select a vendor name!"}]}
+            rules={[
+              { required: true, message: "Please select a vendor name!" },
+            ]}
           >
             <Input />
           </Form.Item>
@@ -183,10 +185,10 @@ const AddVendor: NextPage = () => {
             labelAlign="left"
             required
             rules={[
-              {required: true, message: "Please select a vendor location!"},
+              { required: true, message: "Please select a vendor location!" },
             ]}
           >
-            <Select options={state.locations} />
+            <Input />
           </Form.Item>
         </div>
 
@@ -206,7 +208,7 @@ const AddVendor: NextPage = () => {
             labelAlign="left"
             required
             rules={[
-              {required: true, message: "Please select a vendor category!"},
+              { required: true, message: "Please select a vendor category!" },
             ]}
           >
             <Select mode="multiple" className="" options={state.categories} />
@@ -220,8 +222,8 @@ const AddVendor: NextPage = () => {
                 offset: 2,
               },
             }}
-            name="pan_number"
-            label="Pan Number"
+            name="sub_category"
+            label="Sub Category"
             className="w-full sm:w-[45%]"
             labelAlign="left"
           >
@@ -238,6 +240,22 @@ const AddVendor: NextPage = () => {
                 offset: 2,
               },
             }}
+            name="pan_number"
+            label="Pan Number"
+            className="w-full sm:w-[45%]"
+            labelAlign="left"
+          >
+            <Input />
+          </Form.Item>
+          <Form.Item
+            wrapperCol={{
+              xs: {
+                offset: 0,
+              },
+              md: {
+                offset: 2,
+              },
+            }}
             name="gst_number"
             label="GST Number"
             className="w-full sm:w-[45%]"
@@ -245,6 +263,48 @@ const AddVendor: NextPage = () => {
           >
             <Input />
           </Form.Item>
+        </div>
+        <div className="flex flex-col sm:flex-row w-full justify-between">
+          <Form.Item
+            wrapperCol={{
+              xs: {
+                offset: 0,
+              },
+              md: {
+                offset: 2,
+              },
+            }}
+            name="contact_person"
+            label="Contact Person"
+            className="w-full sm:w-[45%]"
+            labelAlign="left"
+            required
+            rules={[
+              { required: true, message: "Please enter a contact person!" },
+            ]}
+          >
+            <Input />
+          </Form.Item>
+          <Form.Item
+            wrapperCol={{
+              xs: {
+                offset: 0,
+              },
+              md: {
+                offset: 2,
+              },
+            }}
+            name="email"
+            label="E-Mail"
+            className="w-full sm:w-[45%]"
+            labelAlign="left"
+            required
+            rules={[{ required: true, message: "Please enter a email!" }]}
+          >
+            <Input />
+          </Form.Item>
+        </div>
+        <div className="flex flex-col sm:flex-row w-full justify-between">
           <Form.Item
             wrapperCol={{
               xs: {
@@ -268,8 +328,6 @@ const AddVendor: NextPage = () => {
           >
             <Select options={state.paymentCycles} />
           </Form.Item>
-        </div>
-        <div className="flex flex-col sm:flex-row w-full justify-between">
           <Form.Item
             wrapperCol={{
               xs: {
@@ -284,10 +342,12 @@ const AddVendor: NextPage = () => {
             className="w-full sm:w-[45%]"
             labelAlign="left"
             required
-            rules={[{required: true, message: "Please select an option!"}]}
+            rules={[{ required: true, message: "Please select an option!" }]}
           >
             <Select options={msme_certified_options} />
           </Form.Item>
+        </div>
+        <div className="flex flex-col sm:flex-row w-full justify-between">
           <Form.Item
             wrapperCol={{
               xs: {

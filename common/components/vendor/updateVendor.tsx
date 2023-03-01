@@ -1,4 +1,4 @@
-import {DeleteOutlined, EyeOutlined} from "@ant-design/icons";
+import { DeleteOutlined, EyeOutlined } from "@ant-design/icons";
 import {
   Button,
   Form,
@@ -9,16 +9,16 @@ import {
   Upload,
   UploadFile,
 } from "antd";
-import {useEffect, useMemo, useState} from "react";
+import { useEffect, useMemo, useState } from "react";
 import {
   initialState as vendorState,
   initialStateI as vendorI,
 } from "../../../pages/vendor/add";
-import {deleteRequest, getRequest, putRequest} from "../../network";
+import { deleteRequest, getRequest, putRequest } from "../../network";
 import fileUpload from "../../network/fileUpload";
-import {mediaURL, URLs} from "../../network/URLs";
+import { mediaURL, URLs } from "../../network/URLs";
 import getSelectOptions from "../../utils/getSelectOptions";
-import {componentDataI, updateComponentI} from "../utility";
+import { componentDataI, updateComponentI } from "../utility";
 
 type initialStateI = vendorI & {
   uploaded_msme: string | null;
@@ -29,9 +29,9 @@ const initialState: initialStateI = {
   uploaded_msme: null,
 };
 
-const {useForm, useWatch} = Form;
+const { useForm, useWatch } = Form;
 
-const UpdateVendor = ({id, onUpdate}: updateComponentI) => {
+const UpdateVendor = ({ id, onUpdate }: updateComponentI) => {
   const [state, setState] = useState<initialStateI>(initialState);
   const [form] = useForm();
   const msme_certified = useWatch("msme_certified", form);
@@ -52,10 +52,10 @@ const UpdateVendor = ({id, onUpdate}: updateComponentI) => {
   const updateVendor = (values: object) => {
     console.log(values);
 
-    setState((prev) => ({...prev, loading: true}));
+    setState((prev) => ({ ...prev, loading: true }));
     putRequest({
       url: URLs.vendor,
-      reqData: {...values, vendor: id},
+      reqData: { ...values, vendor: id },
     })
       .then((res) => {
         console.log(res);
@@ -66,7 +66,7 @@ const UpdateVendor = ({id, onUpdate}: updateComponentI) => {
         }
       })
       .finally(() => {
-        setState((prev) => ({...prev, loading: false}));
+        setState((prev) => ({ ...prev, loading: false }));
       });
   };
 
@@ -74,11 +74,11 @@ const UpdateVendor = ({id, onUpdate}: updateComponentI) => {
     console.log(uploadedFile);
     console.log("hello");
 
-    const {file, onProgress, onSuccess, onError} = uploadedFile;
+    const { file, onProgress, onSuccess, onError } = uploadedFile;
     const formData = new FormData();
     formData.append("file", file);
-    setState((prev) => ({...prev, uploadProgress: 0}));
-    fileUpload<{id: number}>({
+    setState((prev) => ({ ...prev, uploadProgress: 0 }));
+    fileUpload<{ id: number }>({
       formData: formData,
       onUpload: (event) => {
         const progress = Math.round(
@@ -88,7 +88,7 @@ const UpdateVendor = ({id, onUpdate}: updateComponentI) => {
           ...prev,
           uploadProgress: progress,
         }));
-        onProgress({percent: progress});
+        onProgress({ percent: progress });
       },
     })
       .then((response) => {
@@ -101,7 +101,7 @@ const UpdateVendor = ({id, onUpdate}: updateComponentI) => {
           ...prev,
           uploadProgress: 0,
         }));
-        onError({err});
+        onError({ err });
       });
   };
 
@@ -125,14 +125,14 @@ const UpdateVendor = ({id, onUpdate}: updateComponentI) => {
   };
 
   useEffect(() => {
-    setState((prev) => ({...prev, loading: true}));
+    setState((prev) => ({ ...prev, loading: true }));
     getRequest<componentDataI>({
       url: URLs.vendor,
       params: {
         request_type: "get_details",
         vendor: id,
       },
-    }).then(({data}) => {
+    }).then(({ data }) => {
       if (data) {
         form.setFieldsValue({
           ...data,
@@ -148,24 +148,24 @@ const UpdateVendor = ({id, onUpdate}: updateComponentI) => {
 
       console.log(form.getFieldValue("uploaded_msme"));
 
-      setState((prev) => ({...prev, loading: false}));
+      setState((prev) => ({ ...prev, loading: false }));
     });
     getSelectOptions("category").then((data) => {
-      setState((prev) => ({...prev, categories: data}));
+      setState((prev) => ({ ...prev, categories: data }));
     });
     getSelectOptions("location").then((data) => {
-      setState((prev) => ({...prev, locations: data}));
+      setState((prev) => ({ ...prev, locations: data }));
     });
     getSelectOptions("payment_cycle").then((data) => {
-      setState((prev) => ({...prev, paymentCycles: data}));
+      setState((prev) => ({ ...prev, paymentCycles: data }));
     });
   }, [id]);
   return (
     <>
       <Form
         name="addVendor"
-        labelCol={{span: 6}}
-        wrapperCol={{span: 16, offset: 2}}
+        labelCol={{ span: 6 }}
+        wrapperCol={{ span: 16, offset: 2 }}
         form={form}
         onFinish={updateVendor}
         className="flex items-center flex-col"
@@ -187,7 +187,9 @@ const UpdateVendor = ({id, onUpdate}: updateComponentI) => {
             className="w-full sm:w-[45%]"
             labelAlign="left"
             required
-            rules={[{required: true, message: "Please select a vendor name!"}]}
+            rules={[
+              { required: true, message: "Please select a vendor name!" },
+            ]}
           >
             <Input />
           </Form.Item>
@@ -206,10 +208,10 @@ const UpdateVendor = ({id, onUpdate}: updateComponentI) => {
             labelAlign="left"
             required
             rules={[
-              {required: true, message: "Please select a vendor location!"},
+              { required: true, message: "Please select a vendor location!" },
             ]}
           >
-            <Select options={state.locations} />
+            <Input />
           </Form.Item>
         </div>
 
@@ -229,11 +231,30 @@ const UpdateVendor = ({id, onUpdate}: updateComponentI) => {
             labelAlign="left"
             required
             rules={[
-              {required: true, message: "Please select a vendor category!"},
+              { required: true, message: "Please select a vendor category!" },
             ]}
           >
             <Select mode="multiple" className="" options={state.categories} />
           </Form.Item>
+          <Form.Item
+            wrapperCol={{
+              xs: {
+                offset: 0,
+              },
+              md: {
+                offset: 2,
+              },
+            }}
+            name="sub_category"
+            label="Sub Category"
+            className="w-full sm:w-[45%]"
+            labelAlign="left"
+          >
+            <Input />
+          </Form.Item>
+        </div>
+
+        <div className="flex flex-col sm:flex-row w-full justify-between">
           <Form.Item
             wrapperCol={{
               xs: {
@@ -250,8 +271,6 @@ const UpdateVendor = ({id, onUpdate}: updateComponentI) => {
           >
             <Input />
           </Form.Item>
-        </div>
-        <div className="flex flex-col sm:flex-row w-full justify-between">
           <Form.Item
             wrapperCol={{
               xs: {
@@ -268,6 +287,48 @@ const UpdateVendor = ({id, onUpdate}: updateComponentI) => {
           >
             <Input />
           </Form.Item>
+        </div>
+        <div className="flex flex-col sm:flex-row w-full justify-between">
+          <Form.Item
+            wrapperCol={{
+              xs: {
+                offset: 0,
+              },
+              md: {
+                offset: 2,
+              },
+            }}
+            name="contact_person"
+            label="Contact Person"
+            className="w-full sm:w-[45%]"
+            labelAlign="left"
+            required
+            rules={[
+              { required: true, message: "Please enter a contact person!" },
+            ]}
+          >
+            <Input />
+          </Form.Item>
+          <Form.Item
+            wrapperCol={{
+              xs: {
+                offset: 0,
+              },
+              md: {
+                offset: 2,
+              },
+            }}
+            name="email"
+            label="E-Mail"
+            className="w-full sm:w-[45%]"
+            labelAlign="left"
+            required
+            rules={[{ required: true, message: "Please enter a email!" }]}
+          >
+            <Input />
+          </Form.Item>
+        </div>
+        <div className="flex flex-col sm:flex-row w-full justify-between">
           <Form.Item
             wrapperCol={{
               xs: {
@@ -291,8 +352,6 @@ const UpdateVendor = ({id, onUpdate}: updateComponentI) => {
           >
             <Select options={state.paymentCycles} />
           </Form.Item>
-        </div>
-        <div className="flex flex-col sm:flex-row w-full justify-between">
           <Form.Item
             wrapperCol={{
               xs: {
@@ -307,10 +366,12 @@ const UpdateVendor = ({id, onUpdate}: updateComponentI) => {
             className="w-full sm:w-[45%]"
             labelAlign="left"
             required
-            rules={[{required: true, message: "Please select an option!"}]}
+            rules={[{ required: true, message: "Please select an option!" }]}
           >
             <Select options={msme_certified_options} />
           </Form.Item>
+        </div>
+        <div className="flex flex-col sm:flex-row w-full justify-between">
           <Form.Item
             wrapperCol={{
               xs: {
@@ -373,7 +434,7 @@ const UpdateVendor = ({id, onUpdate}: updateComponentI) => {
                           request_type: "delete_msme",
                           vendor: id,
                         },
-                      }).then(({data}) => {
+                      }).then(({ data }) => {
                         if (data)
                           setState((prev) => ({
                             ...prev,

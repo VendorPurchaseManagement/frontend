@@ -1,13 +1,13 @@
-import {DownloadOutlined} from "@ant-design/icons";
-import {Button, Drawer, Table, Tooltip} from "antd";
+import { DownloadOutlined } from "@ant-design/icons";
+import { Button, Drawer, Table, Tooltip } from "antd";
 import tableExport from "antd-table-export";
-import {NextPage} from "next";
+import { NextPage } from "next";
 import Router from "next/router";
-import {useEffect, useState} from "react";
+import { useEffect, useState } from "react";
 import UpdateVendor from "../../common/components/vendor/updateVendor";
 import DynamicCols from "../../common/dyamicColumns";
-import {deleteRequest, getRequest} from "../../common/network";
-import {mediaURL, URLs} from "../../common/network/URLs";
+import { deleteRequest, getRequest } from "../../common/network";
+import { mediaURL, URLs } from "../../common/network/URLs";
 import useBreadcrumbs from "../../common/utils/useBreadcrumbs";
 
 const columns: any[] = [
@@ -29,6 +29,19 @@ const columns: any[] = [
     render: (pan: string) => (pan === "" ? "--" : pan),
   },
   {
+    title: "Contact Person",
+    dataIndex: "contact_person",
+    key: "contact_person",
+    render: (contact_person: string) =>
+      contact_person === "" ? "--" : contact_person,
+  },
+  {
+    title: "E-Mail",
+    dataIndex: "email",
+    key: "email",
+    render: (email: string) => (email === "" ? "--" : email),
+  },
+  {
     title: "Payment Cycle",
     dataIndex: "payment_cycle",
     key: "payment_cycle",
@@ -42,8 +55,15 @@ const columns: any[] = [
     title: "Category",
     dataIndex: "category",
     key: "category",
-    render: (categories: {name: string}[]) =>
+    render: (categories: { name: string }[]) =>
       categories.map((item, index) => item.name).join(", "),
+  },
+  {
+    title: "Sub-Category",
+    dataIndex: "sub_category",
+    key: "sub_category",
+    render: (sub_category: string) =>
+      sub_category === "" ? "--" : sub_category,
   },
   {
     title: "MSME Certified",
@@ -95,10 +115,10 @@ const Vendor: NextPage = () => {
       url: URLs.vendor,
     })
       .then((res) => {
-        if (res.data) setState((prev) => ({...prev, data: res.data}));
+        if (res.data) setState((prev) => ({ ...prev, data: res.data }));
       })
       .finally(() => {
-        setState((prev) => ({...prev, loading: false}));
+        setState((prev) => ({ ...prev, loading: false }));
       });
   };
   useEffect(() => {
@@ -107,7 +127,7 @@ const Vendor: NextPage = () => {
         label: "Vendors",
       },
     ]);
-    setState((prev) => ({...prev, loading: true}));
+    setState((prev) => ({ ...prev, loading: true }));
     getData();
   }, []);
   return (
@@ -119,7 +139,7 @@ const Vendor: NextPage = () => {
         <div className="flex">
           <Button
             type="primary"
-            onClick={() => setState((prev) => ({...prev, drawerOpen: true}))}
+            onClick={() => setState((prev) => ({ ...prev, drawerOpen: true }))}
           >
             Customize Table
           </Button>
@@ -166,7 +186,7 @@ const Vendor: NextPage = () => {
                       reqData: {
                         vendor: id,
                       },
-                    }).then(({data}) => {
+                    }).then(({ data }) => {
                       if (data) getData();
                     });
                   }}
@@ -178,22 +198,22 @@ const Vendor: NextPage = () => {
           },
           ...state.columns,
         ]}
-        scroll={{x: "max-content"}}
+        scroll={{ x: "max-content" }}
       />
       <DynamicCols
         openCols={state.drawerOpen}
-        closeDrawer={() => setState((prev) => ({...prev, drawerOpen: false}))}
+        closeDrawer={() => setState((prev) => ({ ...prev, drawerOpen: false }))}
         columns={state.columns}
-        updateCols={(arr) => setState((prev) => ({...prev, columns: arr}))}
+        updateCols={(arr) => setState((prev) => ({ ...prev, columns: arr }))}
       />
       <Drawer
         title="Update Vendor"
         width={"100%"}
         onClose={() =>
-          setState((prev) => ({...prev, isEditing: false, editingId: -1}))
+          setState((prev) => ({ ...prev, isEditing: false, editingId: -1 }))
         }
         open={state.isEditing}
-        bodyStyle={{paddingBottom: 80}}
+        bodyStyle={{ paddingBottom: 80 }}
       >
         <UpdateVendor
           id={state.editingId}

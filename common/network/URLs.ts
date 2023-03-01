@@ -1,5 +1,6 @@
 // const baseURL = "http://127.0.0.1:8081";
-const baseURL = "https://56cd-2405-201-402a-8e-8b3c-d999-7854-65b2.in.ngrok.io";
+const baseURL =
+  "https://f36c-2405-201-402a-d2-98d1-89ca-4152-a04c.in.ngrok.io/";
 const mediaURL = baseURL;
 
 const URLs = {
@@ -8,6 +9,7 @@ const URLs = {
   options: "/options/",
   upload: "/upload/",
   contract: "/purchase/contract/",
+  approval: "/purchase/approvals/",
   bankDetail: "/vendor/bank_detail/",
   purchase: "/purchase/",
   verifyIFSC: "https://ifsc.razorpay.com/",
@@ -17,4 +19,4 @@ const URLs = {
   category: "/vendor/category/",
 };
 
-export {baseURL, URLs, mediaURL};
+export { baseURL, URLs, mediaURL };

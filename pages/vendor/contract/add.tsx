@@ -9,12 +9,12 @@ import {
   Upload,
   UploadFile,
 } from "antd";
-import {NextPage} from "next";
-import {useEffect, useState} from "react";
-import {getRequest, postRequest} from "../../../common/network";
+import { NextPage } from "next";
+import { useEffect, useState } from "react";
+import { getRequest, postRequest } from "../../../common/network";
 import fileUpload from "../../../common/network/fileUpload";
-import {URLs} from "../../../common/network/URLs";
-import {SelectWithChildren} from "../../../common/utils/getSelectOptions";
+import { URLs } from "../../../common/network/URLs";
+import { SelectWithChildren } from "../../../common/utils/getSelectOptions";
 import useBreadcrumbs from "../../../common/utils/useBreadcrumbs";
 
 interface initialStateI {
@@ -40,12 +40,12 @@ const initialState: initialStateI = {
 };
 
 const AddBankDetails: NextPage = () => {
-  const {useForm, useWatch} = Form;
+  const { useForm, useWatch } = Form;
   const [form] = useForm();
   const [state, setState] = useState(initialState);
   const setPath = useBreadcrumbs((state) => state.setPath);
-  const {RangePicker} = DatePicker;
-  const {TextArea} = Input;
+  const { RangePicker } = DatePicker;
+  const { TextArea } = Input;
   const addBankDetails = (values: any) => {
     values = {
       ...values,
@@ -53,7 +53,7 @@ const AddBankDetails: NextPage = () => {
       to_date: values.range_date[1].format("YYYY-MM-DD"),
     };
 
-    setState((prev) => ({...prev, loading: true}));
+    setState((prev) => ({ ...prev, loading: true }));
     postRequest({
       url: URLs.contract,
       reqData: values,
@@ -64,7 +64,7 @@ const AddBankDetails: NextPage = () => {
         if (res.data) form.resetFields();
       })
       .finally(() => {
-        setState((prev) => ({...prev, loading: false}));
+        setState((prev) => ({ ...prev, loading: false }));
       });
   };
 
@@ -72,11 +72,11 @@ const AddBankDetails: NextPage = () => {
     console.log(uploadedFile);
     console.log("hello");
 
-    const {file, onProgress, onSuccess, onError} = uploadedFile;
+    const { file, onProgress, onSuccess, onError } = uploadedFile;
     const formData = new FormData();
     formData.append("file", file);
-    setState((prev) => ({...prev, uploadProgress: 0}));
-    fileUpload<{id: number}>({
+    setState((prev) => ({ ...prev, uploadProgress: 0 }));
+    fileUpload<{ id: number }>({
       formData: formData,
       onUpload: (event) => {
         const progress = Math.round(
@@ -86,7 +86,7 @@ const AddBankDetails: NextPage = () => {
           ...prev,
           uploadProgress: progress,
         }));
-        onProgress({percent: progress});
+        onProgress({ percent: progress });
       },
     })
       .then((response) => {
@@ -99,7 +99,7 @@ const AddBankDetails: NextPage = () => {
           ...prev,
           uploadProgress: 0,
         }));
-        onError({err});
+        onError({ err });
       });
   };
   const deleteFile = () => {
@@ -146,15 +146,15 @@ const AddBankDetails: NextPage = () => {
             children: [],
           })),
         }));
-      else setState((prev) => ({...prev, vendors: []}));
+      else setState((prev) => ({ ...prev, vendors: [] }));
     });
   }, []);
   return (
     <>
       <Form
         name="addBankDetails"
-        labelCol={{span: 6}}
-        wrapperCol={{span: 16, offset: 2}}
+        labelCol={{ span: 6 }}
+        wrapperCol={{ span: 16, offset: 2 }}
         form={form}
         onFinish={addBankDetails}
         className="flex items-center flex-col"
@@ -176,7 +176,7 @@ const AddBankDetails: NextPage = () => {
             className="w-full sm:w-[45%]"
             labelAlign="left"
             required
-            rules={[{required: true, message: "Please select a vendor!"}]}
+            rules={[{ required: true, message: "Please select a vendor!" }]}
           >
             <Select
               options={state.vendors}
@@ -196,7 +196,7 @@ const AddBankDetails: NextPage = () => {
                         ? Number.parseInt(res.data.success)
                         : 0,
                     }));
-                  else setState((prev) => ({...prev, contracts: 0}));
+                  else setState((prev) => ({ ...prev, contracts: 0 }));
                 });
               }}
             />
@@ -236,7 +236,7 @@ const AddBankDetails: NextPage = () => {
             className="w-full sm:w-[45%]"
             labelAlign="left"
             required
-            rules={[{required: true, message: "Please enter from date!"}]}
+            rules={[{ required: true, message: "Please enter date range!" }]}
           >
             <RangePicker />
           </Form.Item>
@@ -261,10 +261,77 @@ const AddBankDetails: NextPage = () => {
               },
             ]}
           >
-            <TextArea autoSize={{maxRows: 4, minRows: 1}} />
+            <TextArea autoSize={{ maxRows: 4, minRows: 1 }} />
           </Form.Item>
         </div>
+
         <div className="flex flex-col sm:flex-row w-full justify-between">
+          <Form.Item
+            wrapperCol={{
+              xs: {
+                offset: 0,
+              },
+              md: {
+                offset: 2,
+              },
+            }}
+            name="authorized_signatory"
+            label="Autorized Signatory"
+            className="w-full sm:w-[45%]"
+            labelAlign="left"
+            required
+            rules={[
+              { required: true, message: "Please enter authorized signatory!" },
+            ]}
+          >
+            <Input />
+          </Form.Item>
+          <Form.Item
+            wrapperCol={{
+              xs: {
+                offset: 0,
+              },
+              md: {
+                offset: 2,
+              },
+            }}
+            name="witness"
+            label="Witeness"
+            className="w-full sm:w-[45%]"
+            labelAlign="left"
+            required
+            rules={[
+              {
+                required: true,
+                message: "Please enter a witness!",
+              },
+            ]}
+          >
+            <Input />
+          </Form.Item>
+        </div>
+
+        <div className="flex flex-col sm:flex-row w-full justify-between">
+          <Form.Item
+            wrapperCol={{
+              xs: {
+                offset: 0,
+              },
+              md: {
+                offset: 2,
+              },
+            }}
+            name="registered_email"
+            label="Registered E-Mail"
+            className="w-full sm:w-[45%]"
+            labelAlign="left"
+            required
+            rules={[
+              { required: true, message: "Please enter registered e-mail!" },
+            ]}
+          >
+            <Input />
+          </Form.Item>
           <Form.Item
             wrapperCol={{
               xs: {

@@ -1,10 +1,10 @@
-import {Button, Table, Tooltip} from "antd";
-import {NextPage} from "next";
+import { Button, Table, Tooltip } from "antd";
+import { NextPage } from "next";
 import Router from "next/router";
-import {useEffect, useState} from "react";
+import { useEffect, useState } from "react";
 import DynamicCols from "../../../common/dyamicColumns";
-import {getRequest} from "../../../common/network";
-import {mediaURL, URLs} from "../../../common/network/URLs";
+import { getRequest } from "../../../common/network";
+import { mediaURL, URLs } from "../../../common/network/URLs";
 import useBreadcrumbs from "../../../common/utils/useBreadcrumbs";
 
 const columns: any[] = [
@@ -27,6 +27,16 @@ const columns: any[] = [
     title: "Remarks",
     dataIndex: "remarks",
     key: "remarks",
+  },
+  {
+    title: "Authorized Signatory",
+    dataIndex: "authorized_signatory",
+    key: "authorized_signatory",
+  },
+  {
+    title: "Registered E-Mail",
+    dataIndex: "registered_email",
+    key: "registered_email",
   },
   {
     title: "Added By",
@@ -74,17 +84,17 @@ const Vendor: NextPage = () => {
         label: "Contract",
       },
     ]);
-    setState((prev) => ({...prev, loading: true}));
+    setState((prev) => ({ ...prev, loading: true }));
     getRequest<any[]>({
       url: URLs.contract,
     })
       .then((res) => {
         console.log(res);
 
-        if (res.data) setState((prev) => ({...prev, data: res.data}));
+        if (res.data) setState((prev) => ({ ...prev, data: res.data }));
       })
       .finally(() => {
-        setState((prev) => ({...prev, loading: false}));
+        setState((prev) => ({ ...prev, loading: false }));
       });
   }, []);
   return (
@@ -98,7 +108,7 @@ const Vendor: NextPage = () => {
         </Button>
         <Button
           type="primary"
-          onClick={() => setState((prev) => ({...prev, drawerOpen: true}))}
+          onClick={() => setState((prev) => ({ ...prev, drawerOpen: true }))}
         >
           Customize Table
         </Button>
@@ -109,13 +119,13 @@ const Vendor: NextPage = () => {
         dataSource={state.data}
         rowKey={(row) => row.id}
         columns={state.columns}
-        scroll={{x: "max-content"}}
+        scroll={{ x: "max-content" }}
       />
       <DynamicCols
         openCols={state.drawerOpen}
-        closeDrawer={() => setState((prev) => ({...prev, drawerOpen: false}))}
+        closeDrawer={() => setState((prev) => ({ ...prev, drawerOpen: false }))}
         columns={state.columns}
-        updateCols={(arr) => setState((prev) => ({...prev, columns: arr}))}
+        updateCols={(arr) => setState((prev) => ({ ...prev, columns: arr }))}
       />
     </>
   );
